@@ -22,11 +22,27 @@ export default {
     text-align: center;
     white-space: nowrap;
     background-color: transparent;
-    border-radius: 4px;
+    border-radius: 6px;
     will-change: background-color, box-shadow;
     transition: 0.1s background-color, 0.15s box-shadow;
     position: relative;
+    padding: 0px 12px;
     ${noUserSelect};
+    
+
+    &:after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.04);
+      opacity: 0;
+    }
+
+    &:hover {
+      &:after {
+        opacity: 1;
+      }
+    }
 
     &:focus {
       box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.54);
@@ -41,16 +57,9 @@ export default {
   },
   variants: {
     contained: ({ theme: { colors } }: ComponentVariantProps) => css`
-      padding: 0px 12px;
-      background-color: rgb(50, 50, 50);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      text-align: left;
-      justify-content: flex-start;
-
-      &:hover {
-        border-color: rgba(255, 255, 255, 0.48);
-      }
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: rgba(255, 255, 255, 0.08);
 
       &:focus {
         border-color: rgba(100, 181, 246, 0.54);
@@ -59,7 +68,6 @@ export default {
     `,
     outlined: ({ theme: { colors } }: ComponentVariantProps) => css`
       color: #fff;
-      padding: 0px 12px;
       border: 1px solid rgba(255, 255, 255, 0.24);
       background-color: transparent;
 
@@ -73,9 +81,9 @@ export default {
       }
     `,
     primary: ({ theme: { colors } }: ComponentVariantProps) => css`
-      padding: 0px 16px;
       color: #000;
       background-color: ${DEFAULT_BUTTON_COLOR};
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
 
       &:hover {
         background-color: ${DEFAULT_BUTTON_HOVER_COLOR};
