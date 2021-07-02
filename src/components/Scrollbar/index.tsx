@@ -27,6 +27,45 @@ export const Scrollbar = (props: Props) => {
   const posComponent = horizontal ? 'Left' : 'Top';
   const posComponentLC = posComponent.toLowerCase();
 
+  const onMouseMove = React.useCallback(
+    (event: any) => {
+      if (
+        !thumbRef.current ||
+        !thumbContainer.current ||
+        !container ||
+        !isMouseDown.current
+      )
+        return;
+
+      const scrollSize = container[`scroll${sizeComponent}`];
+      const scrollbarSize = thumbContainer.current[`offset${sizeComponent}`];
+      const scrollbarPos = thumbContainer.current[`offset${posComponent}`];
+      const thumbSize = thumbRef.current[`offset${sizeComponent}`];
+
+      const relativeMousePos =
+        event[horizontal ? 'pageX' : 'pageY'] +
+        thumbContainer.current[`offset${posComponent}`];
+
+      const thumbPos =
+        thumbDragStartPos.current! + relativeMousePos - mouseStartPos.current!;
+      if (thumbPos < 0 || thumbPos + thumbSize! >= scrollbarSize + scrollbarPos)
+        return;
+
+      thumbRef.current.style[posComponentLC] = `${thumbPos}px`;
+
+      container[`scroll${posComponent}`] =
+        (thumbPos / scrollbarSize) * scrollSize;
+    },
+    [
+      container,
+      sizeComponent,
+      horizontal,
+      posComponent,
+      posComponentLC,
+      isMouseDown,
+    ],
+  );
+
   const updateThumb = React.useCallback(() => {
     if (!container || !thumbContainer.current || !thumbRef.current) return;
 
@@ -50,11 +89,7 @@ export const Scrollbar = (props: Props) => {
   const prevContainer = React.useRef<HTMLElement>();
 
   if (container !== prevContainer.current) {
-    if (prevContainer.current) {
-      clearTimeout(interval.current);
-      prevContainer.current.removeEventListener('scroll', updateThumb);
-      resizeObserver.current.unobserve(prevContainer.current);
-    }
+    if (prevContainer.current) clearListeners(prevContainer.current);
 
     prevContainer.current = container;
 
@@ -63,18 +98,28 @@ export const Scrollbar = (props: Props) => {
 
       interval.current = setInterval(() => {
         if (!container) return;
-        const scrollSize = horizontal
-          ? container.scrollWidth
-          : container.scrollHeight;
+        const scrollSize = container[`scroll${sizeComponent}`];
         if (lastScrollSize.current === scrollSize) return;
+
         updateThumb();
       }, 100);
 
       container.addEventListener('scroll', updateThumb);
+      window.addEventListener('mousemove', onMouseMove);
     }
 
     updateThumb();
   }
+
+  const clearListeners = React.useCallback(
+    (container: HTMLElement) => {
+      clearTimeout(interval.current);
+      container.removeEventListener('scroll', updateThumb);
+      resizeObserver.current.unobserve(container);
+      window.removeEventListener('mousemove', onMouseMove);
+    },
+    [onMouseMove, updateThumb],
+  );
 
   const thumbDragStartPos = React.useRef<number>();
   const mouseStartPos = React.useRef<number>();
@@ -93,39 +138,6 @@ export const Scrollbar = (props: Props) => {
     [horizontal, posComponent],
   );
 
-  const onMouseMove = React.useCallback(
-    (event: React.MouseEvent) => {
-      if (
-        !thumbRef.current ||
-        !thumbContainer.current ||
-        !container ||
-        !isMouseDown.current
-      )
-        return;
-
-      const scrollSize = container[`scroll${sizeComponent}`];
-      const scrollbarSize = thumbContainer.current[`offset${sizeComponent}`];
-      const relativeMousePos =
-        event[horizontal ? 'pageX' : 'pageY'] +
-        thumbContainer.current[`offset${posComponent}`];
-
-      const thumbPos =
-        thumbDragStartPos.current! + relativeMousePos - mouseStartPos.current!;
-      thumbRef.current.style[posComponentLC] = `${thumbPos}px`;
-
-      container[`scroll${posComponent}`] =
-        (thumbPos / scrollbarSize) * scrollSize;
-    },
-    [
-      container,
-      sizeComponent,
-      horizontal,
-      posComponent,
-      posComponentLC,
-      isMouseDown,
-    ],
-  );
-
   const onMouseUp = React.useCallback(() => {
     isMouseDown.current = false;
   }, [isMouseDown]);
@@ -134,6 +146,8 @@ export const Scrollbar = (props: Props) => {
     window.addEventListener('mouseup', onMouseUp);
     return () => {
       window.removeEventListener('mouseup', onMouseUp);
+
+      if (container) clearListeners(container);
     };
   }, []);
 
