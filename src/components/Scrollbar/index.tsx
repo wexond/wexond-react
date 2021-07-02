@@ -1,20 +1,23 @@
 import React from 'react';
-import { ScrollbarThumb, StyledScrollbar } from './style';
+import {
+  ScrollbarThumb,
+  ScrollTrack,
+  StyledScrollbar,
+  ScrollThumbContainer,
+} from './style';
 
-interface Props {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
   horizontal?: boolean;
   hoveredThumbSize?: string | number;
   size?: string | number;
   container?: HTMLElement;
 }
 
-export const Scrollbar = ({
-  horizontal,
-  size,
-  hoveredThumbSize,
-  container,
-}: Props) => {
+export const Scrollbar = (props: Props) => {
+  const { horizontal, size, hoveredThumbSize, container } = props;
+
   const ref = React.useRef<HTMLDivElement>(null);
+  const thumbContainer = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
   const interval = React.useRef<any>();
   const isMouseDown = React.useRef<boolean>();
@@ -25,13 +28,13 @@ export const Scrollbar = ({
   const posComponentLC = posComponent.toLowerCase();
 
   const updateThumb = React.useCallback(() => {
-    if (!container || !ref.current || !thumbRef.current) return;
+    if (!container || !thumbContainer.current || !thumbRef.current) return;
 
     const scrollSize = container[`scroll${sizeComponent}`];
     const offsetSize = container[`offset${sizeComponent}`];
     const scrollPos = container[`scroll${posComponent}`];
 
-    const scrollbarSize = ref.current[`offset${sizeComponent}`];
+    const scrollbarSize = thumbContainer.current[`offset${sizeComponent}`];
     const size = (offsetSize / scrollSize) * scrollbarSize;
     const position = (scrollPos / scrollSize) * scrollbarSize;
 
@@ -79,11 +82,11 @@ export const Scrollbar = ({
   const onMouseDown = React.useCallback(
     (event: React.MouseEvent) => {
       isMouseDown.current = true;
-      if (!thumbRef.current || !ref.current) return;
+      if (!thumbRef.current || !thumbContainer.current) return;
 
       thumbDragStartPos.current =
         thumbRef.current[`offset${posComponent}`] -
-        ref.current[`offset${posComponent}`];
+        thumbContainer.current[`offset${posComponent}`];
 
       mouseStartPos.current = event[horizontal ? 'pageX' : 'pageY'];
     },
@@ -94,17 +97,17 @@ export const Scrollbar = ({
     (event: React.MouseEvent) => {
       if (
         !thumbRef.current ||
-        !ref.current ||
+        !thumbContainer.current ||
         !container ||
         !isMouseDown.current
       )
         return;
 
       const scrollSize = container[`scroll${sizeComponent}`];
-      const scrollbarSize = ref.current[`offset${sizeComponent}`];
+      const scrollbarSize = thumbContainer.current[`offset${sizeComponent}`];
       const relativeMousePos =
         event[horizontal ? 'pageX' : 'pageY'] +
-        ref.current[`offset${posComponent}`];
+        thumbContainer.current[`offset${posComponent}`];
 
       const thumbPos =
         thumbDragStartPos.current! + relativeMousePos - mouseStartPos.current!;
@@ -134,19 +137,29 @@ export const Scrollbar = ({
     };
   }, []);
 
+  const hoveredThumbSizeReal = hoveredThumbSize ?? '6px';
+
   return (
     <StyledScrollbar
       horizontal={horizontal}
-      hoveredThumbSize={hoveredThumbSize ?? '6px'}
+      hoveredThumbSize={hoveredThumbSizeReal}
       size={size ?? 16}
       ref={ref}
+      {...props}
     >
-      <ScrollbarThumb
-        ref={thumbRef}
+      <ScrollTrack
         horizontal={horizontal}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-      ></ScrollbarThumb>
+        hoveredThumbSize={hoveredThumbSizeReal}
+      >
+        <ScrollThumbContainer horizontal={horizontal} ref={thumbContainer}>
+          <ScrollbarThumb
+            ref={thumbRef}
+            horizontal={horizontal}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+          ></ScrollbarThumb>
+        </ScrollThumbContainer>
+      </ScrollTrack>
     </StyledScrollbar>
   );
 };
