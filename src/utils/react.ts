@@ -10,7 +10,7 @@ export interface EventsMap {
 }
 
 export const setRefs = <T>(instance: T | null, ...refs: RefsArray<T>) => {
-  refs.forEach((r) => {
+  refs.forEach(r => {
     if (!r) return;
     if (typeof r === 'object') r.current = instance;
     if (typeof r === 'function') r(instance);
@@ -21,16 +21,16 @@ export const mergeRefs = <T>(...refs: RefsArray<T>) => (instance: T) =>
   setRefs(instance, ...refs);
 
 export const mergeEvents = (...events: any[]) => {
-  return (...args: unknown[]) => events.forEach((cb) => cb?.(...args));
+  return (...args: unknown[]) => events.forEach(cb => cb?.(...args));
 };
 
 export const mergeEventsMaps = (...maps: EventsMap[]) => {
   const fnMap: { [key: string]: Array<(...args: any[]) => any> } = {};
 
-  maps.forEach((map) => {
+  maps.forEach(map => {
     const keys = Object.keys(map);
 
-    keys.forEach((key) => {
+    keys.forEach(key => {
       if (!fnMap[key]) fnMap[key] = [];
       fnMap[key].push(map[key]);
     });

@@ -20,40 +20,34 @@ export const StyledIconButton = styled.div`
   transition: 0.2s background-color, 0.05s max-width, 0.15s opacity;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.12);
   }
 
   &:active {
-    background-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.16);
   }
 
   ${({ isDisabled, isActive, dense }: StyledIconButtonProps) =>
     css`
-      ${
-        isDisabled &&
-        css`
-          pointer-events: none;
+      ${isDisabled &&
+      css`
+        pointer-events: none;
 
-          & > * {
-            opacity: 0.24;
-          }
-        `
-      }
+        & > * {
+          opacity: 0.24;
+        }
+      `}
 
-      ${
-        dense &&
-        css`
-          width: 30px;
-          height: 26px;
-        `
-      }
+      ${dense &&
+      css`
+        width: 30px;
+        height: 26px;
+      `}
 
-      ${
-        isActive &&
-        css`
-          background-color: rgba(255, 255, 255, 0.12);
-        `
-      }
+      ${isActive &&
+      css`
+        background-color: rgba(255, 255, 255, 0.12);
+      `}
     `}
 `;
 
